@@ -182,7 +182,7 @@ class UserAdminScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
         title: const Text(
           'Add New User',
@@ -222,7 +222,7 @@ class UserAdminScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text(
               'Cancel',
               style: TextStyle(color: Colors.white54),
@@ -233,7 +233,7 @@ class UserAdminScreen extends StatelessWidget {
               final email = emailController.text.trim();
               if (email.isEmpty) return;
 
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 // Add to Firestore using email as Doc ID
                 await FirebaseFirestore.instance
@@ -265,7 +265,7 @@ class UserAdminScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
         title: Text(
           'Edit ${user.email}',
@@ -293,7 +293,7 @@ class UserAdminScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text(
               'Cancel',
               style: TextStyle(color: Colors.white54),
@@ -301,7 +301,7 @@ class UserAdminScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 await FirebaseFirestore.instance
                     .collection('dashboard_users')
@@ -326,7 +326,7 @@ class UserAdminScreen extends StatelessWidget {
   void _confirmDelete(BuildContext context, DashboardUser user) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
         title: const Text(
           'Confirm Delete',
@@ -338,7 +338,7 @@ class UserAdminScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text(
               'Cancel',
               style: TextStyle(color: Colors.white54),
@@ -346,7 +346,7 @@ class UserAdminScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 await FirebaseFirestore.instance
                     .collection('dashboard_users')
