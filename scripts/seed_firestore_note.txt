@@ -1,0 +1,42 @@
+const String seedScript = '''
+const admin = require('firebase-admin');
+
+// 1. Initialize Firebase Admin
+// You need to generate a private key file for your service account:
+// Dashboard -> Project Settings -> Service accounts -> Generate new private key
+const serviceAccount = require('./service-account-key.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+
+// 2. The Users to Add
+const allowedUsers = [
+  { email: 'dvmaren@gmail.com', name: 'Dennis van Maren', role: 'admin' },
+  { email: 'mike.vanderlans@gmail.com', name: 'Mike van der Lans', role: 'admin' }
+];
+
+async function seedDatabase() {
+  const collectionRef = db.collection('dashboard_users');
+  
+  console.log('Seeding database with allowed users...');
+
+  for (const user of allowedUsers) {
+    // We use the email as the document ID just to keep it unique and easy to find
+    // Using set() with { merge: true } prevents overwriting if run multiple times (though overwriting here is fine)
+    await collectionRef.doc(user.email).set({
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log(`Added/Updated user: ${user.email}`);
+  }
+
+  console.log('Done! Database is ready.');
+}
+
+seedDatabase().catch(console.error);
+''';

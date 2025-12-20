@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -18,18 +19,18 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final List<String> _allowedEmails = [
-    'dvmaren@gmail.com',
-    'mike.vanderlans@gmail.com',
-  ];
+  // Removed hardcoded list in favor of Firestore
+  // final List<String> _allowedEmails = [...];
 
   Future<void> _handleSignIn() async {
+    print('DEBUG: _handleSignIn called');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
+      print('DEBUG: Starting signInWithPopup...');
       // Create a Google provider and sign in with popup
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
@@ -37,24 +38,42 @@ class _LoginScreenState extends State<LoginScreen> {
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithPopup(googleProvider);
 
-      if (userCredential.user != null) {
-        final email = userCredential.user!.email;
-        if (email != null && _allowedEmails.contains(email)) {
+      print(
+        'DEBUG: signInWithPopup success. User: ${userCredential.user?.email}',
+      );
+
+      final user = userCredential.user;
+      if (user != null && user.email != null) {
+        print('DEBUG: Querying Firestore for ${user.email}...');
+
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('dashboard_users')
+            .where('email', isEqualTo: user.email)
+            .limit(1)
+            .get();
+
+        print(
+          'DEBUG: Firestore query done. Docs found: ${querySnapshot.docs.length}',
+        );
+
+        if (querySnapshot.docs.isNotEmpty) {
+          print('DEBUG: User allowed. Calling onLoginSuccess.');
           widget.onLoginSuccess();
         } else {
-          // Logout immediately if not allowed
+          print('DEBUG: User not in allow list.');
           await FirebaseAuth.instance.signOut();
           setState(() {
-            _errorMessage = 'Access Denied: $email is not authorized.';
+            _errorMessage = 'Access Denied: ${user.email} is not authorized.';
           });
         }
+      } else {
+        print('DEBUG: User is null or has no email.');
       }
     } catch (error) {
-      // In a real app we might inspect 'error' to give better messages
+      print('DEBUG: Error caught: $error');
       setState(() {
         _errorMessage = 'Sign in failed. Error: $error';
       });
-      print('Sign in error: $error');
     } finally {
       if (mounted) {
         setState(() {

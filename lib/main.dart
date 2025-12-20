@@ -90,7 +90,7 @@ class _DashboardShellState extends State<DashboardShell>
   bool _isMenuExpanded = true;
 
   final List<MenuItem> _menuItems = [
-    MenuItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+    MenuItem(icon: Icons.dashboard_rounded, label: 'Simulator'),
     MenuItem(icon: Icons.admin_panel_settings_rounded, label: 'User Admin'),
     MenuItem(icon: Icons.settings_rounded, label: 'Settings'),
   ];
@@ -353,67 +353,20 @@ class _DashboardShellState extends State<DashboardShell>
   }
 
   Widget _buildDashboardContent() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Stats Row
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  'Total Plays',
-                  '2.4M',
-                  Icons.play_circle_fill,
-                  const Color(0xFF6C63FF),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: _buildStatCard(
-                  'Active Listeners',
-                  '842K',
-                  Icons.people_alt,
-                  const Color(0xFF00D1FF),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: _buildStatCard(
-                  'New Followers',
-                  '+12.5%',
-                  Icons.trending_up,
-                  const Color(0xFFFF4C93),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
+    // If on Simulator page (index 0), show empty content
+    if (_selectedIndex == 0) {
+      return const SizedBox.shrink(); // Empty widget
+    }
 
-          Text(
-            'Recently Played',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
+    // For other pages, we can show placeholders or keep the old dashboard for now
+    // Since the user specifically asked for "Simulator" page to be empty,
+    // and that WAS the dashboard, we'll return empty for it.
+    // Ideally we'd have different content for User Admin/Settings.
 
-          // Placeholder for heavy content
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
-              childAspectRatio: 2.5,
-            ),
-            itemCount: 6,
-            itemBuilder: (context, index) {
-              return _buildMusicCard(index);
-            },
-          ),
-        ],
+    return Center(
+      child: Text(
+        _menuItems[_selectedIndex].label,
+        style: TextStyle(color: Colors.white, fontSize: 24),
       ),
     );
   }

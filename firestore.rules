@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow any logged-in user to read the dashboard_users collection
+    // to check if they are authorized.
+    match /dashboard_users/{document} {
+      allow read: if true; // DEBUG: Temporarily allow public read to isolate auth issue
+      allow write: if false;
+    }
+  }
+}

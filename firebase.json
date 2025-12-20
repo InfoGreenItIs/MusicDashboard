@@ -1,1 +1,6 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"musicdashboard-6fddb","configurations":{"web":"1:49926955584:web:b13990864ce9eee772f5a5"}}}}}}
+{
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    }
+}
