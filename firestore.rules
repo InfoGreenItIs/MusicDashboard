@@ -4,8 +4,9 @@ service cloud.firestore {
     // Allow any logged-in user to read the dashboard_users collection
     // to check if they are authorized.
     match /dashboard_users/{document} {
-      allow read: if true; // DEBUG: Temporarily allow public read to isolate auth issue
-      allow write: if false;
+      // Allow read/write ONLY if the user is authenticated AND their email exists as a document in this collection
+      // This effectively restricts access to the "allowed list" of users.
+      allow read, write: if request.auth != null && exists(/databases/$(database)/documents/dashboard_users/$(request.auth.token.email));
     }
   }
 }

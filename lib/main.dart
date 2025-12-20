@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:music_dashboard/firebase_options.dart';
-import 'package:music_dashboard/screens/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
+import 'screens/login_screen.dart';
+import 'screens/user_admin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -356,6 +358,10 @@ class _DashboardShellState extends State<DashboardShell>
     // If on Simulator page (index 0), show empty content
     if (_selectedIndex == 0) {
       return const SizedBox.shrink(); // Empty widget
+    }
+
+    if (_selectedIndex == 1) {
+      return const UserAdminScreen();
     }
 
     // For other pages, we can show placeholders or keep the old dashboard for now

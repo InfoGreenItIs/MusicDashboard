@@ -23,14 +23,12 @@ class _LoginScreenState extends State<LoginScreen> {
   // final List<String> _allowedEmails = [...];
 
   Future<void> _handleSignIn() async {
-    print('DEBUG: _handleSignIn called');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      print('DEBUG: Starting signInWithPopup...');
       // Create a Google provider and sign in with popup
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
@@ -38,42 +36,29 @@ class _LoginScreenState extends State<LoginScreen> {
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithPopup(googleProvider);
 
-      print(
-        'DEBUG: signInWithPopup success. User: ${userCredential.user?.email}',
-      );
-
       final user = userCredential.user;
       if (user != null && user.email != null) {
-        print('DEBUG: Querying Firestore for ${user.email}...');
-
         final querySnapshot = await FirebaseFirestore.instance
             .collection('dashboard_users')
             .where('email', isEqualTo: user.email)
             .limit(1)
             .get();
 
-        print(
-          'DEBUG: Firestore query done. Docs found: ${querySnapshot.docs.length}',
-        );
-
         if (querySnapshot.docs.isNotEmpty) {
-          print('DEBUG: User allowed. Calling onLoginSuccess.');
           widget.onLoginSuccess();
         } else {
-          print('DEBUG: User not in allow list.');
           await FirebaseAuth.instance.signOut();
           setState(() {
             _errorMessage = 'Access Denied: ${user.email} is not authorized.';
           });
         }
-      } else {
-        print('DEBUG: User is null or has no email.');
       }
     } catch (error) {
-      print('DEBUG: Error caught: $error');
-      setState(() {
-        _errorMessage = 'Sign in failed. Error: $error';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Sign in failed. Error: $error';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
