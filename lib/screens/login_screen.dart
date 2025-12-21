@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // final List<String> _allowedEmails = [...];
 
   Future<void> _handleSignIn() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -32,9 +33,14 @@ class _LoginScreenState extends State<LoginScreen> {
       // Create a Google provider and sign in with popup
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
+      // Force account selection every time
+      googleProvider.setCustomParameters({'prompt': 'select_account'});
+
       // Trigger the authentication flow
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithPopup(googleProvider);
+
+      if (!mounted) return;
 
       final user = userCredential.user;
       if (user != null && user.email != null) {
@@ -44,21 +50,37 @@ class _LoginScreenState extends State<LoginScreen> {
             .limit(1)
             .get();
 
+        if (!mounted) return;
+
         if (querySnapshot.docs.isNotEmpty) {
           widget.onLoginSuccess();
         } else {
+          // If access denied, sign out immediately
           await FirebaseAuth.instance.signOut();
-          setState(() {
-            _errorMessage = 'Access Denied: ${user.email} is not authorized.';
-          });
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Access Denied: ${user.email} is not authorized.';
+            });
+          }
         }
       }
     } catch (error) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Sign in failed. Error: $error';
-        });
+      if (!mounted) return;
+
+      String message = 'Sign in failed. Error: $error';
+
+      // Check for Firestore permission denied error
+      if (error.toString().contains('permission-denied') ||
+          error.toString().contains('missing or insufficient permissions')) {
+        message =
+            'Access Denied: You are not authorized to access this dashboard.';
+        // Ensure we sign out if the permission check failed so they can try again
+        await FirebaseAuth.instance.signOut();
       }
+
+      setState(() {
+        _errorMessage = message;
+      });
     } finally {
       if (mounted) {
         setState(() {
