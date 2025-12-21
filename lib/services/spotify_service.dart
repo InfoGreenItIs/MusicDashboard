@@ -14,12 +14,11 @@ class SpotifyService {
     }
 
     try {
-      final result = await _functions.httpsCallable('add_playlist').call({
+      await _functions.httpsCallable('add_playlist').call({
         'playlist_id': playlistId,
         'folder_name': folderName,
       });
       // The function returns a success message string
-      print("Cloud Function Result: ${result.data}");
     } on FirebaseFunctionsException catch (e) {
       throw Exception('Cloud Function Error: ${e.message} (${e.code})');
     } catch (e) {

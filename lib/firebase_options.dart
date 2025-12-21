@@ -53,12 +53,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA0q9ZNDjfjBrSgDtnjJwQ27L3cyrQ51Oo',
-    appId: '1:49926955584:web:b13990864ce9eee772f5a5',
-    messagingSenderId: '49926955584',
-    projectId: 'musicdashboard-6fddb',
-    authDomain: 'musicdashboard-6fddb.firebaseapp.com',
-    storageBucket: 'musicdashboard-6fddb.firebasestorage.app',
-    measurementId: 'G-RSKT45EGRT',
+    apiKey: 'AIzaSyBclo_bN00uIWLVXrkJG4VlEl3E7PgoeRs',
+    appId: '1:485741145479:web:1c18713e6230d8d8ebb722',
+    messagingSenderId: '485741145479',
+    projectId: 'aimusicquiz2',
+    authDomain: 'aimusicquiz2.firebaseapp.com',
+    storageBucket: 'aimusicquiz2.firebasestorage.app',
+    measurementId: 'G-G4V8STT0KB',
   );
+
 }

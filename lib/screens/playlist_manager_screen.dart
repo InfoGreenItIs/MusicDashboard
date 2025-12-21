@@ -122,12 +122,17 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                       .orderBy('name')
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError)
-                      return const Center(
-                        child: Icon(Icons.error, color: Colors.red),
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: SelectableText(
+                          'Error: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       );
-                    if (!snapshot.hasData)
+                    }
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
 
                     return ListView.separated(
                       padding: EdgeInsets.zero,
@@ -235,15 +240,17 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                       .collection('playlists')
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError)
-                      return const Center(
-                        child: Text(
-                          'Error loading playlists',
-                          style: TextStyle(color: Colors.red),
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: SelectableText(
+                          'Error: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red),
                         ),
                       );
-                    if (!snapshot.hasData)
+                    }
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
 
                     if (snapshot.data!.docs.isEmpty) {
                       return const Center(
@@ -507,6 +514,40 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   }
 
   Future<void> _deletePlaylist(String playlistId) async {
-    await _spotifyService.deletePlaylist(_selectedFolder!, playlistId);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: const Text(
+          'Delete Playlist?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this playlist?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext); // Close dialog
+              await _spotifyService.deletePlaylist(
+                _selectedFolder!,
+                playlistId,
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Playlist deleted')),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 }
