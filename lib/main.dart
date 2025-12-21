@@ -332,32 +332,7 @@ class _DashboardShellState extends State<DashboardShell>
             ],
           ),
         ),
-        Row(
-          children: [
-            _buildIconButton(Icons.search_rounded),
-            const SizedBox(width: 16),
-            _buildIconButton(Icons.notifications_none_rounded),
-            const SizedBox(width: 16),
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(Icons.person, color: Colors.white),
-            ),
-          ],
-        ),
       ],
-    );
-  }
-
-  Widget _buildIconButton(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-      ),
-      child: Icon(icon, color: Colors.white70, size: 24),
     );
   }
 

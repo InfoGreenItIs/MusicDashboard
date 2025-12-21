@@ -33,6 +33,43 @@ class SpotifyService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> renameFolder(String oldName, String newName) async {
+    // 1. Create Data
+    final oldDocRef = _firestore.collection('qr_playlists').doc(oldName);
+    final newDocRef = _firestore.collection('qr_playlists').doc(newName);
+
+    // Check if new folder already exists to prevent overwrite
+    final newDocSnapshot = await newDocRef.get();
+    if (newDocSnapshot.exists) {
+      throw Exception('Folder "$newName" already exists.');
+    }
+
+    // 2. Fetch all playlists from old folder
+    final playlistsSnapshot = await oldDocRef.collection('playlists').get();
+
+    // 3. Start Batch
+    final batch = _firestore.batch();
+
+    // Create new folder doc
+    batch.set(newDocRef, {
+      'name': newName,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    // Move each playlist
+    for (var doc in playlistsSnapshot.docs) {
+      final newPlaylistRef = newDocRef.collection('playlists').doc(doc.id);
+      batch.set(newPlaylistRef, doc.data());
+      batch.delete(doc.reference);
+    }
+
+    // Delete old folder doc
+    batch.delete(oldDocRef);
+
+    // 4. Commit
+    await batch.commit();
+  }
+
   Future<void> deleteFolder(String folderName) async {
     // Determine if we should make a cloud function for this to be atomic?
     // For now, client-side batch delete is fine as per original implementation

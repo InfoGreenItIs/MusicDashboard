@@ -164,13 +164,28 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               _selectedFolder = folderName;
                             });
                           },
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              size: 20,
-                              color: Colors.white30,
-                            ),
-                            onPressed: () => _confirmDeleteFolder(folderName),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  size: 20,
+                                  color: Colors.white30,
+                                ),
+                                onPressed: () =>
+                                    _showRenameFolderDialog(folderName),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  size: 20,
+                                  color: Colors.white30,
+                                ),
+                                onPressed: () =>
+                                    _confirmDeleteFolder(folderName),
+                              ),
+                            ],
                           ),
                         );
                       },
@@ -402,6 +417,81 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             child: const Text('Create'),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _showRenameFolderDialog(String currentName) async {
+    final controller = TextEditingController(text: currentName);
+    bool isLoading = false; // Internal loading state for the dialog if needed
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2C),
+            title: const Text(
+              'Rename Folder',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'New Folder Name'),
+            ),
+            actions: [
+              if (!isLoading)
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+              if (!isLoading)
+                ElevatedButton(
+                  onPressed: () async {
+                    if (controller.text.trim().isEmpty ||
+                        controller.text.trim() == currentName) {
+                      Navigator.pop(dialogContext);
+                      return;
+                    }
+
+                    setDialogState(() => isLoading = true);
+                    try {
+                      await _spotifyService.renameFolder(
+                        currentName,
+                        controller.text.trim(),
+                      );
+
+                      // If the renamed folder was currently selected, update the selection
+                      if (_selectedFolder == currentName) {
+                        setState(() {
+                          _selectedFolder = controller.text.trim();
+                        });
+                      }
+
+                      if (mounted) {
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Folder renamed successfully'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      setDialogState(() => isLoading = false);
+                      if (mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    }
+                  },
+                  child: const Text('Rename'),
+                ),
+              if (isLoading) const CircularProgressIndicator(),
+            ],
+          );
+        },
       ),
     );
   }
