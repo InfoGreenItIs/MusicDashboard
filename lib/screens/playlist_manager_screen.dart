@@ -119,6 +119,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('qr_playlists')
+                      .orderBy('order')
                       .orderBy('name')
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -134,58 +135,84 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    return ListView.separated(
+                    final docs = snapshot.data!.docs;
+
+                    return ReorderableListView.builder(
                       padding: EdgeInsets.zero,
-                      itemCount: snapshot.data!.docs.length,
-                      separatorBuilder: (_, __) => Divider(
-                        height: 1,
-                        color: Colors.white.withOpacity(0.05),
-                      ),
+                      buildDefaultDragHandles: true,
+                      itemCount: docs.length,
+                      onReorder: (oldIndex, newIndex) {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = docs.removeAt(oldIndex);
+                        docs.insert(newIndex, item);
+
+                        final folderNames = docs.map((d) => d.id).toList();
+                        _spotifyService.reorderFolders(folderNames);
+                      },
                       itemBuilder: (context, index) {
-                        final doc = snapshot.data!.docs[index];
+                        final doc = docs[index];
                         final folderName = doc.id;
                         final isSelected = folderName == _selectedFolder;
 
-                        return ListTile(
-                          title: Text(
-                            folderName,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.white,
+                        return Container(
+                          key: Key(folderName),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.white.withOpacity(0.05),
+                              ),
                             ),
                           ),
-                          selected: isSelected,
-                          selectedTileColor: Theme.of(
-                            context,
-                          ).primaryColor.withOpacity(0.1),
-                          onTap: () {
-                            setState(() {
-                              _selectedFolder = folderName;
-                            });
-                          },
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  size: 20,
-                                  color: Colors.white30,
-                                ),
-                                onPressed: () =>
-                                    _showRenameFolderDialog(folderName),
+                          child: ListTile(
+                            title: Text(
+                              folderName,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.white,
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  size: 20,
-                                  color: Colors.white30,
+                            ),
+                            selected: isSelected,
+                            selectedTileColor: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            onTap: () {
+                              setState(() {
+                                _selectedFolder = folderName;
+                              });
+                            },
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: Colors.white30,
+                                  ),
+                                  onPressed: () =>
+                                      _showRenameFolderDialog(folderName),
                                 ),
-                                onPressed: () =>
-                                    _confirmDeleteFolder(folderName),
-                              ),
-                            ],
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 20,
+                                    color: Colors.white30,
+                                  ),
+                                  onPressed: () =>
+                                      _confirmDeleteFolder(folderName),
+                                ),
+                                ReorderableDragStartListener(
+                                  index: index,
+                                  child: const Icon(
+                                    Icons.drag_handle,
+                                    color: Colors.white30,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -253,6 +280,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                       .collection('qr_playlists')
                       .doc(_selectedFolder)
                       .collection('playlists')
+                      .orderBy('order')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
@@ -276,106 +304,136 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                       );
                     }
 
-                    return ListView.builder(
-                      itemCount: snapshot.data!.docs.length,
+                    final docs = snapshot.data!.docs;
+
+                    return ReorderableListView.builder(
+                      itemCount: docs.length,
+                      onReorder: (oldIndex, newIndex) {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = docs.removeAt(oldIndex);
+                        docs.insert(newIndex, item);
+                        final playlistIds = docs.map((d) => d.id).toList();
+                        _spotifyService.reorderPlaylists(
+                          _selectedFolder!,
+                          playlistIds,
+                        );
+                      },
                       itemBuilder: (context, index) {
-                        final doc = snapshot.data!.docs[index];
+                        final doc = docs[index];
                         final playlist = PlaylistModel.fromSnapshot(doc);
 
-                        return Card(
-                          color: Colors.white.withOpacity(0.05),
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: ExpansionTile(
-                            leading: playlist.imageUrl != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(4),
-                                    child: Image.network(
-                                      playlist.imageUrl!,
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
+                        return Container(
+                          key: Key(playlist.id),
+                          child: Card(
+                            color: Colors.white.withOpacity(0.05),
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: ExpansionTile(
+                              leading: playlist.imageUrl != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: Image.network(
+                                        playlist.imageUrl!,
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.music_note,
+                                      color: Colors.white54,
                                     ),
-                                  )
-                                : const Icon(
-                                    Icons.music_note,
-                                    color: Colors.white54,
-                                  ),
-                            title: Text(
-                              playlist.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              title: Text(
+                                playlist.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            subtitle: Text(
-                              '${playlist.trackCount} tracks • By ${playlist.owner}',
-                              style: const TextStyle(color: Colors.white54),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
+                              subtitle: Text(
+                                '${playlist.trackCount} tracks • By ${playlist.owner}',
+                                style: const TextStyle(color: Colors.white54),
                               ),
-                              onPressed: () => _deletePlaylist(playlist.id),
-                            ),
-                            children: [
-                              if (playlist.spotifyUrl != null)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                    ),
+                                    onPressed: () =>
+                                        _deletePlaylist(playlist.id),
                                   ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: TextButton.icon(
-                                      onPressed: () => launchUrl(
-                                        Uri.parse(playlist.spotifyUrl!),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.open_in_new,
-                                        size: 16,
-                                      ),
-                                      label: const Text('Open in Spotify'),
+                                  ReorderableDragStartListener(
+                                    index: index,
+                                    child: const Icon(
+                                      Icons.drag_handle,
+                                      color: Colors.white30,
                                     ),
                                   ),
-                                ),
-                              Container(
-                                constraints: const BoxConstraints(
-                                  maxHeight: 300,
-                                ),
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: playlist.tracks.length,
-                                  itemBuilder: (context, i) {
-                                    final track = playlist.tracks[i];
-                                    return ListTile(
-                                      visualDensity: VisualDensity.compact,
-                                      leading: Text(
-                                        '${i + 1}',
-                                        style: const TextStyle(
-                                          color: Colors.white38,
-                                        ),
-                                      ),
-                                      title: Text(
-                                        track['name'] ?? 'Unknown',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        track['artist'] ?? 'Unknown',
-                                        style: const TextStyle(
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                ],
                               ),
-                            ],
+                              children: [
+                                if (playlist.spotifyUrl != null)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        onPressed: () => launchUrl(
+                                          Uri.parse(playlist.spotifyUrl!),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.open_in_new,
+                                          size: 16,
+                                        ),
+                                        label: const Text('Open in Spotify'),
+                                      ),
+                                    ),
+                                  ),
+                                Container(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 300,
+                                  ),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: playlist.tracks.length,
+                                    itemBuilder: (context, i) {
+                                      final track = playlist.tracks[i];
+                                      return ListTile(
+                                        visualDensity: VisualDensity.compact,
+                                        leading: Text(
+                                          '${i + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white38,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          track['name'] ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          track['artist'] ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },

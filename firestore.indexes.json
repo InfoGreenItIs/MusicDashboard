@@ -1,4 +1,37 @@
 {
-    "indexes": [],
+    "indexes": [
+        {
+            "collectionGroup": "qr_playlists",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "order",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "name",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "totalCorrectAnswers",
+                    "order": "DESCENDING"
+                },
+                {
+                    "fieldPath": "totalQuestionsAttempted",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "totalTimePlayed",
+                    "order": "ASCENDING"
+                }
+            ]
+        }
+    ],
     "fieldOverrides": []
 }

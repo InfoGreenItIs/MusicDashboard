@@ -105,4 +105,26 @@ class SpotifyService {
       throw Exception('Cloud Function Error: ${e.message}');
     }
   }
+
+  Future<void> reorderFolders(List<String> folderNames) async {
+    final batch = _firestore.batch();
+    for (int i = 0; i < folderNames.length; i++) {
+      final docRef = _firestore.collection('qr_playlists').doc(folderNames[i]);
+      batch.update(docRef, {'order': i});
+    }
+    await batch.commit();
+  }
+
+  Future<void> reorderPlaylists(
+    String folderName,
+    List<String> playlistIds,
+  ) async {
+    final batch = _firestore.batch();
+    final folderRef = _firestore.collection('qr_playlists').doc(folderName);
+    for (int i = 0; i < playlistIds.length; i++) {
+      final docRef = folderRef.collection('playlists').doc(playlistIds[i]);
+      batch.update(docRef, {'order': i});
+    }
+    await batch.commit();
+  }
 }
