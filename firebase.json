@@ -1,1 +1,48 @@
-{"functions":[{"source":"functions","codebase":"default","ignore":["venv",".git","firebase-debug.log","firebase-debug.*.log"],"runtime":"python311"}],"hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","destination":"/index.html"}]},"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"aimusicquiz2","configurations":{"web":"1:485741145479:web:1c18713e6230d8d8ebb722"}}}}}}
+{
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "venv",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log"
+            ],
+            "runtime": "python311"
+        }
+    ],
+    "hosting": [
+        {
+            "site": "aimusicquiz2-dashboard",
+            "public": "build/web",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ]
+        }
+    ],
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "aimusicquiz2",
+                    "configurations": {
+                        "web": "1:485741145479:web:1c18713e6230d8d8ebb722"
+                    }
+                }
+            }
+        }
+    }
+}
