@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -30,15 +32,49 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Create a Google provider and sign in with popup
-      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      UserCredential userCredential;
 
-      // Force account selection every time
-      googleProvider.setCustomParameters({'prompt': 'select_account'});
+      if (kIsWeb) {
+        // Web: Use signInWithPopup
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
+        userCredential = await FirebaseAuth.instance.signInWithPopup(
+          googleProvider,
+        );
+      } else {
+        // Native (macOS/Android/iOS): Use GoogleSignIn package
+        final GoogleSignIn googleSignIn = GoogleSignIn();
 
-      // Trigger the authentication flow
-      final UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithPopup(googleProvider);
+        // Ensure we force account selection if possible (GoogleSignIn doesn't have direct 'prompt' param like web provider,
+        // but signIn() usually prompts if not silently signed in)
+        // To force explicit sign in, we can signOut first if needed, but let's try standard flow.
+        try {
+          await googleSignIn.signOut(); // Force fresh login choice
+        } catch (e) {
+          // ignore
+        }
+
+        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+        if (googleUser == null) {
+          // User canceled
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        userCredential = await FirebaseAuth.instance.signInWithCredential(
+          credential,
+        );
+      }
 
       if (!mounted) return;
 
@@ -184,6 +220,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
+
+                  if (kDebugMode && !kIsWeb)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: TextButton.icon(
+                        onPressed: widget.onLoginSuccess,
+                        icon: const Icon(
+                          Icons.bug_report,
+                          color: Colors.orange,
+                        ),
+                        label: const Text(
+                          'Debug: Bypass Login',
+                          style: TextStyle(color: Colors.orange),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.orange.withOpacity(0.1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
 
                   _buildGoogleButton(),
                 ],

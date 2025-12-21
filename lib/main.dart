@@ -3,13 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/user_admin_screen.dart';
+import 'screens/playlist_manager_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MusicDashboardApp());
 }
 
@@ -92,7 +95,7 @@ class _DashboardShellState extends State<DashboardShell>
   bool _isMenuExpanded = true;
 
   final List<MenuItem> _menuItems = [
-    MenuItem(icon: Icons.dashboard_rounded, label: 'Simulator'),
+    MenuItem(icon: Icons.library_music_rounded, label: 'Playlist Manager'),
     MenuItem(icon: Icons.admin_panel_settings_rounded, label: 'User Admin'),
     MenuItem(icon: Icons.settings_rounded, label: 'Settings'),
   ];
@@ -307,23 +310,27 @@ class _DashboardShellState extends State<DashboardShell>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome back, Dennis',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Here is your music overview for today.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.white54),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome back, Dennis',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Here is your music overview for today.',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white54),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
         Row(
           children: [
@@ -355,19 +362,14 @@ class _DashboardShellState extends State<DashboardShell>
   }
 
   Widget _buildDashboardContent() {
-    // If on Simulator page (index 0), show empty content
+    // If on Playlist Manager page (index 0)
     if (_selectedIndex == 0) {
-      return const SizedBox.shrink(); // Empty widget
+      return const PlaylistManagerScreen();
     }
 
     if (_selectedIndex == 1) {
       return const UserAdminScreen();
     }
-
-    // For other pages, we can show placeholders or keep the old dashboard for now
-    // Since the user specifically asked for "Simulator" page to be empty,
-    // and that WAS the dashboard, we'll return empty for it.
-    // Ideally we'd have different content for User Admin/Settings.
 
     return Center(
       child: Text(

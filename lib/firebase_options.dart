@@ -61,5 +61,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'musicdashboard-6fddb.firebasestorage.app',
     measurementId: 'G-RSKT45EGRT',
   );
-
 }

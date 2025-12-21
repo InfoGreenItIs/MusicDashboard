@@ -1,6 +1,43 @@
 {
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "venv",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log"
+            ],
+            "runtime": "python311"
+        }
+    ],
+    "hosting": {
+        "public": "build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
+    },
     "firestore": {
         "rules": "firestore.rules",
         "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "musicdashboard-6fddb",
+                    "configurations": {}
+                }
+            }
+        }
     }
 }
