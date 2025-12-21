@@ -30,6 +30,7 @@ class SpotifyService {
     await _firestore.collection('qr_playlists').doc(folderName).set({
       'name': folderName,
       'created_at': FieldValue.serverTimestamp(),
+      'order': DateTime.now().millisecondsSinceEpoch,
     }, SetOptions(merge: true));
   }
 

@@ -4,6 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import os
 import json
+import time
 
 initialize_app()
 db = firestore.client()
@@ -71,6 +72,9 @@ def add_playlist(req: https_fn.CallableRequest):
         sp = get_spotify_client()
         playlist_data = fetch_playlist_data(sp, playlist_id)
 
+        # Add default order using timestamp (milliseconds) to ensure it appears at the end
+        playlist_data['order'] = int(time.time() * 1000)
+
         # Store in Firestore
         folder_doc_ref = db.collection("qr_playlists").document(folder_name)
         playlist_doc_ref = folder_doc_ref.collection("playlists").document(playlist_data['id'])
@@ -112,9 +116,10 @@ def update_all_folders(req: https_fn.CallableRequest):
                 if pid:
                     try:
                         new_data = fetch_playlist_data(sp, pid)
-                        # Store updated data
-                        db.collection("qr_playlists").document(folder_name).collection("playlists").document(pid).set(new_data)
+                        # Store updated data, use merge=True to preserve 'order' field
+                        db.collection("qr_playlists").document(folder_name).collection("playlists").document(pid).set(new_data, merge=True)
                         updated_count += 1
+
                     except Exception as e:
                         errors.append(f"Error updating playlist {pid} in {folder_name}: {str(e)}")
         
