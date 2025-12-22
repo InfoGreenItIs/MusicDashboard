@@ -169,26 +169,53 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.music_note_rounded,
-                    size: 64,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(height: 24),
                   Text(
-                    'Welcome Back',
+                    'Music Dashboard',
                     style: GoogleFonts.outfit(
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in to access the dashboard',
-                    style: TextStyle(color: Colors.white54),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.blue[300],
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Access restricted to authorized users only',
+                            style: TextStyle(
+                              color: Colors.blue[200],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
 
                   if (_errorMessage != null) ...[
                     Container(
@@ -263,44 +290,56 @@ class _LoginScreenState extends State<LoginScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
-          elevation: 0,
+          elevation: 2,
+          shadowColor: Colors.black.withOpacity(0.1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
         child: _isLoading
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Center(
-                      child: Text(
-                        'G',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.blue,
+                  // Official Google Logo from CDN
+                  Image.network(
+                    'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                    width: 20,
+                    height: 20,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to simple "G" if image fails to load
+                      return Container(
+                        width: 20,
+                        height: 20,
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'G',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF4285F4),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      'Sign in with Google',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(width: 16),
+                  Text(
+                    'Sign in with Google',
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                      color: const Color(0xFF3C4043),
+                      letterSpacing: 0.25,
                     ),
                   ),
                 ],
