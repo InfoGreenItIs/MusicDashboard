@@ -200,12 +200,15 @@ class _DashboardShellState extends State<DashboardShell>
                       ),
                       if (_isMenuExpanded) ...[
                         const SizedBox(width: 12),
-                        Text(
-                          'M-Dash',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            letterSpacing: 1,
+                        Flexible(
+                          child: Text(
+                            'Music Dashboard',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              letterSpacing: 0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -266,7 +269,10 @@ class _DashboardShellState extends State<DashboardShell>
       onTap: () => setState(() => _selectedIndex = index),
       child: Container(
         height: 56,
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+        margin: EdgeInsets.symmetric(
+          vertical: 4,
+          horizontal: _isMenuExpanded ? 12 : 8,
+        ),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).primaryColor.withOpacity(0.2)
