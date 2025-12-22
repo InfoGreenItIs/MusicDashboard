@@ -45,16 +45,22 @@ class SpotifyService {
       throw Exception('Folder "$newName" already exists.');
     }
 
-    // 2. Fetch all playlists from old folder
+    // 2. Fetch old data to preserve order
+    final oldDocSnapshot = await oldDocRef.get();
+    final oldData = oldDocSnapshot.data();
+    final int? oldOrder = oldData?['order'];
+
+    // 3. Fetch all playlists from old folder
     final playlistsSnapshot = await oldDocRef.collection('playlists').get();
 
-    // 3. Start Batch
+    // 4. Start Batch
     final batch = _firestore.batch();
 
     // Create new folder doc
     batch.set(newDocRef, {
       'name': newName,
       'created_at': FieldValue.serverTimestamp(),
+      if (oldOrder != null) 'order': oldOrder,
     });
 
     // Move each playlist
@@ -67,8 +73,21 @@ class SpotifyService {
     // Delete old folder doc
     batch.delete(oldDocRef);
 
-    // 4. Commit
+    // 5. Commit
     await batch.commit();
+  }
+
+  Future<void> renamePlaylist(
+    String folderName,
+    String playlistId,
+    String newName,
+  ) async {
+    await _firestore
+        .collection('qr_playlists')
+        .doc(folderName)
+        .collection('playlists')
+        .doc(playlistId)
+        .update({'name': newName});
   }
 
   Future<void> deleteFolder(String folderName) async {

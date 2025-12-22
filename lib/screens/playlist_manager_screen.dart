@@ -27,15 +27,33 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             _buildHeader(),
             const SizedBox(height: 24),
             Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left Panel: Folders
-                  Expanded(flex: 1, child: _buildFolderList()),
-                  const SizedBox(width: 24),
-                  // Right Panel: Playlists
-                  Expanded(flex: 1, child: _buildPlaylistList()),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 800;
+                  if (isWide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Panel: Folders
+                        Expanded(flex: 1, child: _buildFolderList()),
+                        const SizedBox(width: 24),
+                        // Right Panel: Playlists
+                        Expanded(flex: 1, child: _buildPlaylistList()),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Top Panel: Folders
+                        Expanded(flex: 1, child: _buildFolderList()),
+                        const SizedBox(height: 24),
+                        // Bottom Panel: Playlists
+                        Expanded(flex: 1, child: _buildPlaylistList()),
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -93,14 +111,18 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Folders',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        'Folders',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _showAddFolderDialog,
                       icon: const Icon(Icons.create_new_folder),
@@ -252,14 +274,18 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Playlists in "$_selectedFolder"',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        'Playlists in "$_selectedFolder"',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _showAddPlaylistDialog,
                       icon: const Icon(Icons.add_link),
@@ -359,6 +385,15 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.white30,
+                                    ),
+                                    onPressed: () =>
+                                        _showRenamePlaylistDialog(playlist),
+                                  ),
                                   IconButton(
                                     icon: const Icon(
                                       Icons.delete,
@@ -553,6 +588,64 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                         });
                       }
 
+                      if (mounted) {
+                        Navigator.pop(dialogContext);
+                      }
+                    } catch (e) {
+                      setDialogState(() => isLoading = false);
+                    }
+                  },
+                  child: const Text('Rename'),
+                ),
+              if (isLoading) const CircularProgressIndicator(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _showRenamePlaylistDialog(PlaylistModel playlist) async {
+    final controller = TextEditingController(text: playlist.name);
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2C),
+            title: const Text(
+              'Rename Playlist',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: TextField(
+              controller: controller,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'New Playlist Name'),
+            ),
+            actions: [
+              if (!isLoading)
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+              if (!isLoading)
+                ElevatedButton(
+                  onPressed: () async {
+                    if (controller.text.trim().isEmpty ||
+                        controller.text.trim() == playlist.name) {
+                      Navigator.pop(dialogContext);
+                      return;
+                    }
+
+                    setDialogState(() => isLoading = true);
+                    try {
+                      await _spotifyService.renamePlaylist(
+                        _selectedFolder!,
+                        playlist.id,
+                        controller.text.trim(),
+                      );
                       if (mounted) {
                         Navigator.pop(dialogContext);
                       }
