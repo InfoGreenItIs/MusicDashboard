@@ -38,7 +38,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                         Expanded(flex: 1, child: _buildFolderList()),
                         const SizedBox(width: 24),
                         // Right Panel: Playlists
-                        Expanded(flex: 1, child: _buildPlaylistList()),
+                        Expanded(flex: 2, child: _buildPlaylistList()),
                       ],
                     );
                   } else {
@@ -159,7 +159,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
 
                     return ReorderableListView.builder(
                       padding: EdgeInsets.zero,
-                      buildDefaultDragHandles: true,
+                      buildDefaultDragHandles: false,
                       itemCount: docs.length,
                       onReorder: (oldIndex, newIndex) {
                         if (oldIndex < newIndex) {
@@ -226,9 +226,18 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                 ),
                                 ReorderableDragStartListener(
                                   index: index,
-                                  child: const Icon(
-                                    Icons.drag_handle,
-                                    color: Colors.white30,
+                                  child: const MouseRegion(
+                                    cursor: SystemMouseCursors.grab,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      child: Icon(
+                                        Icons.drag_indicator,
+                                        color: Colors.white30,
+                                        size: 20,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -331,6 +340,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                     final docs = snapshot.data!.docs;
 
                     return ReorderableListView.builder(
+                      buildDefaultDragHandles: false,
                       itemCount: docs.length,
                       onReorder: (oldIndex, newIndex) {
                         if (oldIndex < newIndex) {
@@ -357,30 +367,52 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               vertical: 8,
                             ),
                             child: ExpansionTile(
-                              leading: playlist.imageUrl != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Image.network(
-                                        playlist.imageUrl!,
-                                        width: 48,
-                                        height: 48,
-                                        fit: BoxFit.cover,
+                              shape: Border.all(color: Colors.transparent),
+                              collapsedShape: Border.all(
+                                color: Colors.transparent,
+                              ),
+                              tilePadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Container(
+                                width: 40,
+                                height: 40,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: playlist.imageUrl != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Image.network(
+                                          playlist.imageUrl!,
+                                          width: 40,
+                                          height: 40,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.music_note,
+                                        color: Colors.white70,
+                                        size: 24,
                                       ),
-                                    )
-                                  : const Icon(
-                                      Icons.music_note,
-                                      color: Colors.white54,
-                                    ),
+                              ),
                               title: Text(
                                 playlist.name,
-                                style: const TextStyle(
+                                style: GoogleFonts.outfit(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
                                 ),
                               ),
                               subtitle: Text(
                                 '${playlist.trackCount} tracks • By ${playlist.owner}',
-                                style: const TextStyle(color: Colors.white54),
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white54,
+                                  fontSize: 14,
+                                ),
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -396,7 +428,9 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                   ),
                                   IconButton(
                                     icon: const Icon(
-                                      Icons.delete,
+                                      Icons
+                                          .delete_outline, // Matching the delete outline style
+                                      size: 20,
                                       color: Colors.redAccent,
                                     ),
                                     onPressed: () =>
@@ -404,9 +438,19 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                   ),
                                   ReorderableDragStartListener(
                                     index: index,
-                                    child: const Icon(
-                                      Icons.drag_handle,
-                                      color: Colors.white30,
+                                    child: const MouseRegion(
+                                      cursor: SystemMouseCursors.grab,
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                        ),
+                                        child: Icon(
+                                          Icons
+                                              .drag_indicator, // Changed to drag_indicator
+                                          color: Colors.white30,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -427,8 +471,15 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                         icon: const Icon(
                                           Icons.open_in_new,
                                           size: 16,
+                                          color: Colors.white70,
                                         ),
-                                        label: const Text('Open in Spotify'),
+                                        label: Text(
+                                          'Open in Spotify',
+                                          style: GoogleFonts.outfit(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -445,21 +496,28 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                         visualDensity: VisualDensity.compact,
                                         leading: Text(
                                           '${i + 1}',
-                                          style: const TextStyle(
+                                          style: GoogleFonts.outfit(
                                             color: Colors.white38,
+                                            fontSize: 14,
                                           ),
                                         ),
                                         title: Text(
                                           track['name'] ?? 'Unknown',
-                                          style: const TextStyle(
+                                          style: GoogleFonts.outfit(
                                             color: Colors.white,
+                                            fontSize: 14,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         subtitle: Text(
                                           track['artist'] ?? 'Unknown',
-                                          style: const TextStyle(
+                                          style: GoogleFonts.outfit(
                                             color: Colors.white54,
+                                            fontSize: 12,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       );
                                     },
