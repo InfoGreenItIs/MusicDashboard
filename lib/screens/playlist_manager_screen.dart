@@ -34,7 +34,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   Expanded(flex: 1, child: _buildFolderList()),
                   const SizedBox(width: 24),
                   // Right Panel: Playlists
-                  Expanded(flex: 2, child: _buildPlaylistList()),
+                  Expanded(flex: 1, child: _buildPlaylistList()),
                 ],
               ),
             ),
@@ -58,33 +58,17 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        Row(
-          children: [
-            ElevatedButton.icon(
-              onPressed: () => _showAddFolderDialog(),
-              icon: const Icon(Icons.create_new_folder),
-              label: const Text('New Folder'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.secondary.withOpacity(0.2),
-                foregroundColor: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Refresh logic if needed
-                setState(() {});
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.withOpacity(0.2),
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
+        ElevatedButton.icon(
+          onPressed: () {
+            // Refresh logic if needed
+            setState(() {});
+          },
+          icon: const Icon(Icons.refresh),
+          label: const Text('Refresh'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey.withOpacity(0.2),
+            foregroundColor: Colors.white,
+          ),
         ),
       ],
     );
@@ -106,13 +90,27 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Folders',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white70,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Folders',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _showAddFolderDialog,
+                      icon: const Icon(Icons.create_new_folder),
+                      label: const Text('New Folder'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
@@ -450,31 +448,59 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
 
   Future<void> _showAddFolderDialog() async {
     final controller = TextEditingController();
+    bool isLoading = false;
+
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2C),
-        title: const Text('New Folder', style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: controller,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(labelText: 'Folder Name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                _spotifyService.createFolder(controller.text.trim());
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2C),
+            title: const Text(
+              'New Folder',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Folder Name',
+                    hintText: 'My Music Folder',
+                  ),
+                  autofocus: true,
+                ),
+              ],
+            ),
+            actions: [
+              if (!isLoading)
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+              if (!isLoading)
+                ElevatedButton(
+                  onPressed: () async {
+                    if (controller.text.isEmpty) return;
+                    setDialogState(() => isLoading = true);
+
+                    try {
+                      await _spotifyService.createFolder(
+                        controller.text.trim(),
+                      );
+                      Navigator.pop(dialogContext);
+                    } catch (e) {
+                      setDialogState(() => isLoading = false);
+                      // Error handling without SnackBar
+                    }
+                  },
+                  child: const Text('Create'),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -529,19 +555,9 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
 
                       if (mounted) {
                         Navigator.pop(dialogContext);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Folder renamed successfully'),
-                          ),
-                        );
                       }
                     } catch (e) {
                       setDialogState(() => isLoading = false);
-                      if (mounted) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
                     }
                   },
                   child: const Text('Rename'),
@@ -640,16 +656,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                         _selectedFolder!,
                       );
                       Navigator.pop(dialogContext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Playlist added successfully'),
-                        ),
-                      );
                     } catch (e) {
                       setDialogState(() => isLoading = false);
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   },
                   child: const Text('Fetch & Add'),
@@ -686,11 +694,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 _selectedFolder!,
                 playlistId,
               );
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Playlist deleted')),
-                );
-              }
+              // Playlist deleted
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
