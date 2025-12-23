@@ -76,18 +76,6 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        ElevatedButton.icon(
-          onPressed: () {
-            // Refresh logic if needed
-            setState(() {});
-          },
-          icon: const Icon(Icons.refresh),
-          label: const Text('Refresh'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey.withOpacity(0.2),
-            foregroundColor: Colors.white,
-          ),
-        ),
       ],
     );
   }
@@ -511,7 +499,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         subtitle: Text(
-                                          track['artist'] ?? 'Unknown',
+                                          '${track['artist'] ?? 'Unknown'} • ${track['album'] ?? 'Unknown'} ${track['release_date'] != null ? '(${track['release_date'].substring(0, 4)})' : ''}',
                                           style: GoogleFonts.outfit(
                                             color: Colors.white54,
                                             fontSize: 12,

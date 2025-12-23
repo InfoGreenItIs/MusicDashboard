@@ -166,6 +166,9 @@ MusicDashboard/
 
 ## 📝 Recent Updates
 
+- ✅ Added playlist rename functionality
+- ✅ Refined responsive layout for mobile/desktop
+- ✅ Improved UI aesthetics (standardized fonts, consistent icons)
 - ✅ Deployed dashboard to separate hosting site
 - ✅ Added drag-and-drop reordering for folders and playlists
 - ✅ Implemented folder rename functionality

@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/user_admin_screen.dart';
 import 'screens/playlist_manager_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -350,6 +351,10 @@ class _DashboardShellState extends State<DashboardShell>
 
     if (_selectedIndex == 1) {
       return const UserAdminScreen();
+    }
+
+    if (_selectedIndex == 2) {
+      return const SettingsScreen();
     }
 
     return Center(
