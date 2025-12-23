@@ -1,4 +1,4 @@
-from firebase_functions import https_fn, options
+from firebase_functions import https_fn, options, logger
 from firebase_admin import initialize_app, firestore
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -71,6 +71,7 @@ def add_playlist(req: https_fn.CallableRequest):
             raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT, message="Missing playlist_id or folder_name")
 
         sp = get_spotify_client()
+        logger.info(f"Fetching data for playlist {playlist_id} to add to folder {folder_name}")
         playlist_data = fetch_playlist_data(sp, playlist_id)
 
         # Add default order using timestamp (milliseconds) to ensure it appears at the end
@@ -84,11 +85,14 @@ def add_playlist(req: https_fn.CallableRequest):
         # Update folder timestamp
         folder_doc_ref.set({'name': folder_name, 'last_updated': firestore.SERVER_TIMESTAMP}, merge=True)
 
+        logger.info(f"Successfully added playlist {playlist_data['name']} to {folder_name}")
         return f"Playlist '{playlist_data['name']}' stored in folder '{folder_name}'."
 
     except ValueError as e:
+         logger.error(f"ValueError in add_playlist: {e}")
          raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=str(e))
     except Exception as e:
+         logger.error(f"Error in add_playlist: {e}")
          raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=f"Error: {str(e)}")
 
 @https_fn.on_call(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
@@ -101,6 +105,7 @@ def update_all_folders(req: https_fn.CallableRequest):
 
     try:
         sp = get_spotify_client()
+        logger.info("Starting update of all folders...")
         folders = db.collection("qr_playlists").stream()
         
         updated_count = 0
@@ -122,7 +127,9 @@ def update_all_folders(req: https_fn.CallableRequest):
                         updated_count += 1
 
                     except Exception as e:
-                        errors.append(f"Error updating playlist {pid} in {folder_name}: {str(e)}")
+                        error_msg = f"Error updating playlist {pid} in {folder_name}: {str(e)}"
+                        logger.error(error_msg)
+                        errors.append(error_msg)
         
         response_msg = f"Updated {updated_count} playlists."
         if errors:
@@ -131,6 +138,7 @@ def update_all_folders(req: https_fn.CallableRequest):
         return response_msg
 
     except Exception as e:
+        logger.error(f"Fatal error in update_all_folders: {e}")
         raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=f"Error: {str(e)}")
 
 @https_fn.on_call(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
@@ -150,6 +158,7 @@ def search_playlists(req: https_fn.CallableRequest):
              raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT, message="Missing query parameter 'q'")
 
         sp = get_spotify_client()
+        logger.info(f"Searching playlists for query: '{query}' with limit {limit}")
         results = sp.search(q=query, type='playlist', limit=int(limit))
         
         items = results['playlists']['items']
