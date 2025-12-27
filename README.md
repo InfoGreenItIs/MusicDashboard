@@ -176,6 +176,7 @@ MusicDashboard/
 - ✅ Migrated Spotify integration to Cloud Functions
 - ✅ Implemented user admin CRUD screen
 - ✅ Added Firestore-based user access control
+- ✅ Migrated Cloud Functions to europe-west4 region
 
 ## 🐛 Known Issues
 

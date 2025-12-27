@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 class SpotifyService {
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(
+    region: 'europe-west4',
+  );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // No longer need client-side initialization for Spotify as it's handled in Cloud Functions

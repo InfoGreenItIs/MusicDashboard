@@ -54,7 +54,7 @@ def fetch_playlist_data(sp, playlist_id):
     except Exception as e:
         raise RuntimeError(f"Error fetching playlist data: {e}")
 
-@https_fn.on_call(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+@https_fn.on_call(region="europe-west4", cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
 def add_playlist(req: https_fn.CallableRequest):
     """
     Adds a playlist to Firestore.
@@ -95,7 +95,7 @@ def add_playlist(req: https_fn.CallableRequest):
          logger.error(f"Error in add_playlist: {e}")
          raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=f"Error: {str(e)}")
 
-@https_fn.on_call(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+@https_fn.on_call(region="europe-west4", cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
 def update_all_folders(req: https_fn.CallableRequest):
     """
     Refreshes all playlists in Firestore.
@@ -141,7 +141,7 @@ def update_all_folders(req: https_fn.CallableRequest):
         logger.error(f"Fatal error in update_all_folders: {e}")
         raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message=f"Error: {str(e)}")
 
-@https_fn.on_call(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+@https_fn.on_call(region="europe-west4", cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
 def search_playlists(req: https_fn.CallableRequest):
     """
     Search for playlists on Spotify.
